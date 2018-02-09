@@ -88,6 +88,8 @@ int main (int argc, char *argv[]) {
     index++;
    }
 
+  double forceArray[2*N]; //Array to store force on each particle in each step
+
   /* If graphics are to be used, prepare graphics window */
   if (graphics == 1) {
     InitializeGraphics(argv[0],windowWidth,windowWidth);
@@ -100,12 +102,21 @@ int main (int argc, char *argv[]) {
   /* Start simulation */
   for (int time_step = 0; time_step < nsteps; time_step++) {   // Loop over all timesteps
 
+    /* Store force acting on particle in x and y direction */
+    for (int i = 0; i < N; i++) {
+      target = &particles[i];
+
+      forceArray[2*i] = get_force_1D(target, i, particles, 'x', N);
+      forceArray[2*i + 1] = get_force_1D(target, i, particles, 'y', N);
+    }
+
     /* Update position of particle i with respect to all other particles */
     for (int i = 0; i < N; i++) {
       target = &particles[i];
+
       // This get method could be modified to a set since values are not used
-      get_pos_1D(target,i,particles,'x', delta_t, N);     
-      get_pos_1D(target,i,particles,'y', delta_t, N);
+      get_pos_1D(target,i,particles,'x', delta_t, N, forceArray[2*i]);     
+      get_pos_1D(target,i,particles,'y', delta_t, N, forceArray[2*i+1]);
     }
 
     if (graphics == 1) {

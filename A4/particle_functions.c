@@ -7,8 +7,8 @@ const double distMinimum = 0.02;	// Minimum distance before Plummer sphere modif
 								// Is set to twice the diameter of a particle
 
 //MASTER BOSS CALCULATE NEW POSITION FUNCTION 
-double get_pos_1D(particle_t * target, int indexTarget, particle_t * __restrict others, char coord, double delta_t, int N){
-	double force = get_force_1D(target, indexTarget, others, coord, N);
+double get_pos_1D(particle_t * target, int indexTarget, particle_t * __restrict others, char coord, double delta_t, int N, double force){
+	//double force = get_force_1D(target, indexTarget, others, coord, N);
 	double velocity, position;
 
 	if(coord == 'x'){
