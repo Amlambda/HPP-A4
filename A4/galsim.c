@@ -7,10 +7,11 @@
 
 const double particleRadius = 0.005, particleColor = 0;
 const int windowWidth = 800;
+const double gravConst = 100;
 
 
 int main (int argc, char *argv[]) {
-	double L=1, W=1;    // Dimensions of domain in which particles move
+  const double L=1, W=1;    // Dimensions of domain in which particles move
 
   // Check command line arguments
   if(argc != 6) {   // End program if not 5 input arguments (argv[0] is the program name)
@@ -30,9 +31,9 @@ int main (int argc, char *argv[]) {
   printf("delta_t: \t\t%.5f\n", delta_t);
   const int graphics = atoi(argv[5]);         // 1 or 0 meaning graphics on/off
   printf("graphics: \t\t%d\n", graphics);
-    printf("------------------------------------\n\n");
+  printf("------------------------------------\n\n");
 
-	//COPIED CODE TO READ FILE
+  //COPIED CODE TO READ FILE
   /* Open input file and determine its size. */
   FILE* input_file = fopen(input_file_name, "rb");
   if(!input_file) {
@@ -62,8 +63,9 @@ int main (int argc, char *argv[]) {
   // END OF COPIED CODE
 
   /* Read initial configuration from buffer */
-  struct particle particles[N];                 // Array of particle structs staticly allocated on stack
-  char* ptr = &buffer[0];                       // Pointer to use when extracting doubles from buffer
+  particle_t particles[N];                 // Arrays of particle attributes statically allocated on stack
+
+  char* ptr;                                    // Pointer to use when extracting doubles from buffer
   const int offset = sizeof(double);            // Constant used as offset into buffer when reading and writing doubles
   int index = 0;
   for (int i = 0; i < fileSize; i+=6*offset) {      // Increase by six*sizeof(double) (six attributes per particle)
@@ -75,20 +77,17 @@ int main (int argc, char *argv[]) {
 
     ptr = &buffer[i+2*offset];
     memcpy(&particles[index].mass, ptr, sizeof(double));
-
+  
     ptr = &buffer[i+3*offset];
     memcpy(&particles[index].xVel, ptr, sizeof(double));
 
     ptr = &buffer[i+4*offset];
     memcpy(&particles[index].yVel, ptr, sizeof(double));
 
-    ptr = &buffer[i+5*offset];
-    memcpy(&particles[index].bright, ptr, sizeof(double));
+    ptr = &buffer[i+5*offset];  // Step to brightness but do nothing
 
     index++;
-   }
-
-  double forceArray[2*N]; //Array to store force on each particle in each step
+  }
 
   /* If graphics are to be used, prepare graphics window */
   if (graphics == 1) {
@@ -97,26 +96,47 @@ int main (int argc, char *argv[]) {
   }
 
   /* Initialize variables */
-  particle_t * target, * other; 
+  particle_t * target, * other;
+  double absDist, partDistX, partDistY;
+  double xAcc[N]; 
+  double yAcc[N];
 
   /* Start simulation */
   for (int time_step = 0; time_step < nsteps; time_step++) {   // Loop over all timesteps
 
-    /* Store force acting on particle in x and y direction */
+    /* Compute force on particle i from all other particles */
     for (int i = 0; i < N; i++) {
       target = &particles[i];
+      double forceSumX = 0;
+      double forceSumY = 0;
 
-      forceArray[2*i] = get_force_1D(target, i, particles, 'x', N);
-      forceArray[2*i + 1] = get_force_1D(target, i, particles, 'y', N);
+      for (int j = 0; j < N; j++) {
+        other = &particles[j];
+        if (i != j) {
+          absDist = get_abs_dist(target->xPos, target->yPos, other->xPos, other->yPos);
+
+          partDistX = get_part_dist_1D(target->xPos, other->xPos);
+          partDistY = get_part_dist_1D(target->yPos, other->yPos);
+
+          forceSumX += get_force_1D(partDistX, absDist, other->mass);
+          forceSumY += get_force_1D(partDistY, absDist, other->mass);
+        }
+      }
+
+      xAcc[i] = -(gravConst/N)*forceSumX;
+      //printf("%f\n", xAcc[i]);
+      yAcc[i] = -(gravConst/N)*forceSumY;
+      //printf("%f\n", yAcc[i]);
     }
-
+    
     /* Update position of particle i with respect to all other particles */
     for (int i = 0; i < N; i++) {
       target = &particles[i];
+      target->xVel = get_vel_1D(xAcc[i], target->xVel, delta_t);
+      target->yVel = get_vel_1D(yAcc[i], target->yVel, delta_t);
 
-      // This get method could be modified to a set since values are not used
-      get_pos_1D(target,i,particles,'x', delta_t, N, forceArray[2*i]);     
-      get_pos_1D(target,i,particles,'y', delta_t, N, forceArray[2*i+1]);
+      target->xPos = get_pos_1D(target->xPos, target->xVel, delta_t);   
+      target->yPos = get_pos_1D(target->yPos, target->yVel, delta_t);
     }
 
     if (graphics == 1) {
@@ -127,14 +147,13 @@ int main (int argc, char *argv[]) {
       }
       Refresh();
       /* Sleep a short while to avoid screen flickering. (SHOULD ONLY BE USED FOR SMALL N)*/ 
-      if(N<500){
-        usleep(5000);
-      }
+      if(N<500)
+        usleep(3000);
     }
-  }  	
+  }   
 
   if (graphics == 1) {
-  	FlushDisplay();
+    FlushDisplay();
     CloseDisplay();
   }
 
@@ -157,19 +176,22 @@ int main (int argc, char *argv[]) {
     memcpy(ptr, &particles[index].yVel, sizeof(double));
     
     ptr = &buffer[i+5*offset];
-    memcpy(ptr, &particles[index].bright, sizeof(double)); 
 
     index++;
   }
 
-  /* Create output file write results to it */
+  // Create output file write results to it 
+
+  /*
   int no_of_chars_to_copy = strlen(input_file_name) - 4;   // Copy input file name except for ".gal"
   char* copy_file_name = (char *)malloc(sizeof(char)*no_of_chars_to_copy);      
   strncpy(copy_file_name, input_file_name, no_of_chars_to_copy);
-
-  char* output_file_name;  // Build output file name based on input file name and number of steps 
+  // Build output file name based on input file name and number of steps 
   //asprintf(&output_file_name, "%s_after%dsteps_result.gal", copy_file_name, nsteps);
-  output_file_name = "result.gal";
+  free(copy_file_name);
+  */
+
+  char* output_file_name = "result.gal";
 
   // Open output file for writing
   FILE* output_file = fopen(output_file_name, "wb");
@@ -193,6 +215,5 @@ int main (int argc, char *argv[]) {
   printf("Result saved in file '%s'\n", output_file_name);
 
   free(buffer);
-  free(copy_file_name);
-	return 0;
+  return 0;
 }
