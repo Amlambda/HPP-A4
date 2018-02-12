@@ -26,6 +26,6 @@ double get_abs_dist(double xPosTarget, double yPosTarget, double xPosOther, doub
 // Calculates the contributioin to the force sum in 1D on target particle from one other particle 
 double get_force_1D(double partDist, double absDist, double massOther) {
 	// Plummer sphere modification, r<<1 
-	return (massOther*partDist)/(pow((absDist + eps0),3));
+	return (massOther*partDist)/((absDist + eps0)*(absDist + eps0)*(absDist + eps0));
 }
 

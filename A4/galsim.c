@@ -98,45 +98,58 @@ int main (int argc, char *argv[]) {
   /* Initialize variables */
   particle_t * target, * other;
   double absDist, partDistX, partDistY;
-  double xAcc[N]; 
-  double yAcc[N];
+  double xAcc[N], yAcc[N]; 
+  double xForce, yForce;
+  double forceSumX[N], forceSumY[N];
+
 
   /* Start simulation */
   for (int time_step = 0; time_step < nsteps; time_step++) {   // Loop over all timesteps
 
     /* Compute acceleration of particle i based on force from all other particles */
+    for (int i = 0; i < (N-1); i++) {
+      target = &particles[i];
+
+      for (int j = (i+1); j < N; j++) {
+        other = &particles[j];
+        absDist = get_abs_dist(target->xPos, target->yPos, other->xPos, other->yPos);
+
+        partDistX = get_part_dist_1D(target->xPos, other->xPos);
+        partDistY = get_part_dist_1D(target->yPos, other->yPos);
+
+        xForce = -((gravConst*(target->mass))/N)*get_force_1D(partDistX, absDist, other->mass);
+        yForce = -((gravConst*(target->mass))/N)*get_force_1D(partDistY, absDist, other->mass);
+          
+        /* Add force contribution to target particle */  
+        forceSumX[i] += xForce;
+        forceSumY[i] += yForce;
+        
+        /* Add force contribution to other particle */ 
+        forceSumX[j] -= xForce;
+        forceSumY[j] -= yForce;
+      }
+    }
+
     for (int i = 0; i < N; i++) {
       target = &particles[i];
-      double forceSumX = 0;
-      double forceSumY = 0;
-
-      for (int j = 0; j < N; j++) {
-        other = &particles[j];
-        if (i != j) {
-          absDist = get_abs_dist(target->xPos, target->yPos, other->xPos, other->yPos);
-
-          partDistX = get_part_dist_1D(target->xPos, other->xPos);
-          partDistY = get_part_dist_1D(target->yPos, other->yPos);
-
-          forceSumX += get_force_1D(partDistX, absDist, other->mass);
-          forceSumY += get_force_1D(partDistY, absDist, other->mass);
-        }
-      }
-
-      xAcc[i] = -(gravConst/N)*forceSumX;
-      //printf("%f\n", xAcc[i]);
-      yAcc[i] = -(gravConst/N)*forceSumY;
-      //printf("%f\n", yAcc[i]);
+      xAcc[i] = forceSumX[i]/(target->mass);
+      yAcc[i] = forceSumY[i]/(target->mass);
     }
     
     /* Update position of particle i with respect to all other particles */
     for (int i = 0; i < N; i++) {
       target = &particles[i];
+
       target->xVel = get_vel_1D(xAcc[i], target->xVel, delta_t);
       target->yVel = get_vel_1D(yAcc[i], target->yVel, delta_t);
 
       target->xPos = get_pos_1D(target->xPos, target->xVel, delta_t);   
       target->yPos = get_pos_1D(target->yPos, target->yVel, delta_t);
+    }
+
+    for (int i = 0; i < N; i++) {
+      forceSumX[i] = 0;
+      forceSumY[i] = 0;   
     }
 
     if (graphics == 1) {
