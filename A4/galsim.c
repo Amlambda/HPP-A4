@@ -104,7 +104,7 @@ int main (int argc, char *argv[]) {
   /* Start simulation */
   for (int time_step = 0; time_step < nsteps; time_step++) {   // Loop over all timesteps
 
-    /* Compute force on particle i from all other particles */
+    /* Compute acceleration of particle i based on force from all other particles */
     for (int i = 0; i < N; i++) {
       target = &particles[i];
       double forceSumX = 0;
