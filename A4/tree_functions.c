@@ -2,6 +2,102 @@
 #include <math.h>
 
 /* Node functions */
+void descent(node_t *node){
+  if(node != NULL)
+    printf("{ tl.x:%f, tl.y:%f, br.x:%f, br.y:%f }: ", node->xPos,
+      node->yPos, node->xPos + node->width, node->yPos + node->width);
+}
+
+void ascent(node_t *node){
+  printf("\n");
+}
+
+void walk(node_t *root, void (*descent)(node_t *node), void (*ascent)(node_t *node)) {
+  (*descent)(root);
+  if(root->tl != NULL) walk(root->tl, descent, ascent);
+  if(root->tr != NULL) walk(root->tr, descent, ascent);
+  if(root->bl != NULL) walk(root->bl, descent, ascent);
+  if(root->br != NULL) walk(root->br, descent, ascent);
+  (*ascent)(root);
+}
+
+
+cm_t * calc_cm(node_t *root) {
+  //Initiate center of mass-structs for each quadrant in the node
+  cm_t * tlCm = (cm_t*)malloc(sizeof(cm_t)); //contains mass, x-position, y-position
+  cm_t * trCm = (cm_t*)malloc(sizeof(cm_t));
+  cm_t * blCm = (cm_t*)malloc(sizeof(cm_t));
+  cm_t * brCm = (cm_t*)malloc(sizeof(cm_t));
+  cm_t * newCm = (cm_t*)malloc(sizeof(cm_t));
+
+  //Recursively calculate CoM for each quadrant
+  if(root->tl != NULL){ 
+    if(isleaf(root->tl)){
+      tlCm = root->tl->nodeCm;
+    }else if(ispointer(root->tl)){
+      tlCm = calc_cm(root->tl);
+    }else{
+      (tlCm)->mass = 0;
+      (tlCm)->xPos = 0;
+      (tlCm)->yPos = 0;
+    }
+  }
+  if(root->tr != NULL){ 
+    if(isleaf(root->tr)){   
+      trCm = root->tr->nodeCm;
+    }else if(ispointer(root->tr)){
+      trCm = calc_cm(root->tr);
+    }else{
+      (trCm)->mass = 0;
+      (trCm)->xPos = 0;
+      (trCm)->yPos = 0;
+    }
+  }
+  if(root->bl != NULL){ 
+    if(isleaf(root->bl)){
+      blCm = root->bl->nodeCm;
+    }else if(ispointer(root->bl)){
+      blCm = calc_cm(root->bl);
+    }else{
+      (blCm)->mass = 0;
+      (blCm)->xPos = 0;
+      (blCm)->yPos = 0;
+    }
+  }
+  if(root->br != NULL){ 
+    if(isleaf(root->br)){
+      brCm = root->br->nodeCm;
+    }else if(ispointer(root->br)){
+      brCm = calc_cm(root->br);
+    }else{
+      (brCm)->mass = 0;
+      (brCm)->xPos = 0;
+      (brCm)->yPos = 0;
+    }
+  }
+
+
+  /* TRYING TO WEIGH TOGETHER CM HERE BUT IT FAILS!! */
+  double totMass = tlCm->mass + trCm->mass + blCm->mass + brCm->mass;
+  newCm->mass = totMass;
+  newCm->xPos = ((tlCm->mass)*((tlCm->xPos)-(root->tl->width)) + (trCm->mass)*((trCm->xPos)-(root->tr->width)) + (blCm->mass)*((blCm->xPos)-(root->bl->width)) + (brCm->mass)*((brCm->xPos)-(root->br->width)))/totMass;
+  newCm->yPos = ((tlCm->mass)*((tlCm->yPos)-(root->tl->width)) + (trCm->mass)*((trCm->yPos)-(root->tr->width)) + (blCm->mass)*((blCm->yPos)-(root->bl->width)) + (brCm->mass)*((brCm->yPos)-(root->br->width)))/totMass;
+  
+  free(tlCm);
+  free(trCm);
+  free(blCm);
+  free(brCm);
+
+  printf("New center of mass, mass: %f, xpos: %f, ypos: %f.\n",newCm->mass,newCm->xPos,newCm->yPos);
+  root->nodeCm = newCm;
+  printf("Confirm new center of mass, mass: %f, xpos: %f, ypos: %f.\n",root->nodeCm->mass,root->nodeCm->xPos,root->nodeCm->yPos);
+
+  return newCm;
+}
+
+// void update_cm(cm_t * newCm,){
+
+// }
 
 // Creates new empty node with specified top left corner coordinates and width 
 node_t * new_node(double xPos, double yPos, double width) {
@@ -71,7 +167,10 @@ int split_node(node_t *node){
   	particle_t * old = node->particle;
 
   	// Set particle attribute to null
-  	node->particle = NULL;
+  	node->particle = 0;
+    node->nodeCm->mass  = 0;
+    node->nodeCm->xPos  = 0;
+    node->nodeCm->xPos  = 0;
 
 	return insert(node, old);
 }
@@ -80,6 +179,10 @@ int split_node(node_t *node){
 int insert(node_t * root, particle_t * particle) {
 	if(isempty(root)){
 		root->particle = particle;
+    root->nodeCm = (cm_t*)malloc(sizeof(cm_t));
+    root->nodeCm->mass  = particle->mass;
+    root->nodeCm->xPos  = particle->xPos;
+    root->nodeCm->yPos  = particle->yPos;
 		return 1; /* normal insertion flag */
 	} else if(isleaf(root)) {
   		if(root->particle->xPos == particle->xPos && root->particle->yPos == particle->yPos){
@@ -120,12 +223,8 @@ int match_coords(node_t * quadrant, particle_t * particle) {	// Kollat att quadr
 	// 	quadrant->yPos + quadrant->width >= particle->yPos);
       return ((quadrant->xPos) <= (particle->xPos))					// Check left border
       && ((quadrant->xPos + quadrant->width) >= (particle->xPos))		// Check right border
-      && ((quadrant->yPos) <= (particle->yPos))						// Check upper border		BLIR FEL HÄR!
+      && ((quadrant->yPos) <= (particle->yPos))						// Check upper border	
       && ((quadrant->yPos + quadrant->width) >= (particle->yPos));	// Check lower border
 }
 
-/*void add_node(node_t * node, double xPos, double yPos, double width){
-	node->xPos = xPos; 
-	node->yPos = yPos;
-	node->width = width;
-}*/
+

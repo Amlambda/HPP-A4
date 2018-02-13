@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <assert.h>
+
 
 const double particleRadius = 0.005, particleColor = 0;
 const int windowWidth = 800;
@@ -109,8 +111,11 @@ int main (int argc, char *argv[]) {
   printf("Is pointer: %d\n", ispointer(root));
   insert(root, &particles[2]);
   printf("Third particle inserted. \n\n");
-  insert(root, &particles[3]);
-  printf("Fourth particle inserted. \n\n");
+  // insert(root, &particles[3]);
+  // printf("Fourth particle inserted. \n\n");
+  // for(int i=0;i<N;i++){
+  //     insert(root, &particles[1]);
+  // }
 
   printf("Lets check the mother nodes children! \n");
   printf("TOP LEFT\n");
@@ -129,6 +134,41 @@ int main (int argc, char *argv[]) {
   printf("Is empty: %d\n", isempty(root->br));
   printf("Is leaf: %d\n", isleaf(root->br));
   printf("Is pointer: %d\n", ispointer(root->br));
+
+  calc_cm(root);
+  
+  printf("Lets check the mother's center of mass! \n");
+  if(root->tl->nodeCm != NULL){
+    printf("CM mass: %f\n", root->nodeCm->mass);
+    printf("CM xPos: %f\n", root->nodeCm->xPos);
+    printf("CM yPos: %f\n", root->nodeCm->yPos);
+  }
+
+  printf("Lets check the childrens' center of mass! \n");
+  printf("TOP LEFT\n");
+  if(root->tl->nodeCm != NULL){
+    printf("CM mass: %f\n", root->tl->nodeCm->mass);
+    printf("CM xPos: %f\n", root->tl->nodeCm->xPos);
+    printf("CM yPos: %f\n", root->tl->nodeCm->yPos);
+  }
+  printf("TOP RIGHT\n");
+  if(root->tr->nodeCm != NULL){
+    printf("CM mass: %f\n", root->tr->nodeCm->mass);
+    printf("CM xPos: %f\n", root->tr->nodeCm->xPos);
+    printf("CM yPos: %f\n", root->tr->nodeCm->yPos);
+  }
+  printf("BOTTOM LEFT\n");
+  if(root->bl->nodeCm != NULL){
+    printf("CM mass: %f\n", root->bl->nodeCm->mass);
+    printf("CM xPos: %f\n", root->bl->nodeCm->xPos);
+    printf("CM yPos: %f\n", root->bl->nodeCm->yPos);
+  }
+  printf("BOTTOM RIGHT\n");
+  if(root->br->nodeCm != NULL){
+    printf("CM mass: %f\n", root->br->nodeCm->mass);
+    printf("CM xPos: %f\n", root->br->nodeCm->xPos);
+    printf("CM yPos: %f\n", root->br->nodeCm->yPos);
+  }
 
 
   

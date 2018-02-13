@@ -1,6 +1,11 @@
 #include "particle_functions.h"
 #include <stdio.h>
 #include <stdlib.h>
+typedef struct cm {
+	double mass;
+	double xPos;
+	double yPos;
+} cm_t;
 
 typedef struct node {
 	struct node * tl; //top left child
@@ -18,8 +23,20 @@ typedef struct node {
 	// Particle in quad (if leaf. else, it is  NULL)
 	particle_t * particle;
 
+	struct cm * nodeCm;
+	//Center of mass of node, mass and coord
+	double cmMass;
+	double cmXPos;
+	double cmYPos;
+
+
 } node_t;
 
+
+void descent(node_t *node);
+void ascent(node_t *node);
+cm_t * calc_cm(node_t *root);
+void walk(node_t *root, void (*descent)(node_t *node), void (*ascent)(node_t *node));
 // Creates new empty node with specified top left corner coordinates and width 
 node_t * new_node(double xPos, double yPos, double width); 
 
