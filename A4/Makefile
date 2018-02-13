@@ -3,9 +3,9 @@ INCLUDES=-I/opt/X11/include
 LDFLAGS=-L/opt/X11/lib -lX11 -lm
 
 galsim: galsim.o particle_functions.o tree_functions.o graphics.o
-	gcc -o galsim galsim.o particle_functions.o graphics.o $(LDFLAGS)
+	gcc -o galsim galsim.o particle_functions.o tree_functions.o graphics.o $(LDFLAGS)
 
-galsim.o: galsim.c particle_functions.h graphics.h
+galsim.o: galsim.c particle_functions.h tree_functions.h graphics.h
 	gcc $(CFLAGS) $(INCLUDES) -c galsim.c
 
 particle_functions.o: particle_functions.c particle_functions.h
