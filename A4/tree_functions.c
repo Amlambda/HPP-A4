@@ -1,5 +1,6 @@
 #include "tree_functions.h"
 #include <math.h>
+#include <assert.h>
 
 /* Node functions */
 void descent(node_t *node){
@@ -21,83 +22,124 @@ void walk(node_t *root, void (*descent)(node_t *node), void (*ascent)(node_t *no
   (*ascent)(root);
 }
 
-
-cm_t * calc_cm(node_t *root) {
-  //Initiate center of mass-structs for each quadrant in the node
-  cm_t * tlCm = (cm_t*)malloc(sizeof(cm_t)); //contains mass, x-position, y-position
-  cm_t * trCm = (cm_t*)malloc(sizeof(cm_t));
-  cm_t * blCm = (cm_t*)malloc(sizeof(cm_t));
-  cm_t * brCm = (cm_t*)malloc(sizeof(cm_t));
-  cm_t * newCm = (cm_t*)malloc(sizeof(cm_t));
-
-  //Recursively calculate CoM for each quadrant
-  if(root->tl != NULL){ 
-    if(isleaf(root->tl)){
-      tlCm = root->tl->nodeCm;
-    }else if(ispointer(root->tl)){
-      tlCm = calc_cm(root->tl);
-    }else{
-      (tlCm)->mass = 0;
-      (tlCm)->xPos = 0;
-      (tlCm)->yPos = 0;
-    }
-  }
-  if(root->tr != NULL){ 
-    if(isleaf(root->tr)){   
-      trCm = root->tr->nodeCm;
-    }else if(ispointer(root->tr)){
-      trCm = calc_cm(root->tr);
-    }else{
-      (trCm)->mass = 0;
-      (trCm)->xPos = 0;
-      (trCm)->yPos = 0;
-    }
-  }
-  if(root->bl != NULL){ 
-    if(isleaf(root->bl)){
-      blCm = root->bl->nodeCm;
-    }else if(ispointer(root->bl)){
-      blCm = calc_cm(root->bl);
-    }else{
-      (blCm)->mass = 0;
-      (blCm)->xPos = 0;
-      (blCm)->yPos = 0;
-    }
-  }
-  if(root->br != NULL){ 
-    if(isleaf(root->br)){
-      brCm = root->br->nodeCm;
-    }else if(ispointer(root->br)){
-      brCm = calc_cm(root->br);
-    }else{
-      (brCm)->mass = 0;
-      (brCm)->xPos = 0;
-      (brCm)->yPos = 0;
-    }
-  }
-
-
-  /* TRYING TO WEIGH TOGETHER CM HERE BUT IT FAILS!! */
-  double totMass = tlCm->mass + trCm->mass + blCm->mass + brCm->mass;
-  newCm->mass = totMass;
-  newCm->xPos = ((tlCm->mass)*((tlCm->xPos)-(root->tl->width)) + (trCm->mass)*((trCm->xPos)-(root->tr->width)) + (blCm->mass)*((blCm->xPos)-(root->bl->width)) + (brCm->mass)*((brCm->xPos)-(root->br->width)))/totMass;
-  newCm->yPos = ((tlCm->mass)*((tlCm->yPos)-(root->tl->width)) + (trCm->mass)*((trCm->yPos)-(root->tr->width)) + (blCm->mass)*((blCm->yPos)-(root->bl->width)) + (brCm->mass)*((brCm->yPos)-(root->br->width)))/totMass;
-  
-  free(tlCm);
-  free(trCm);
-  free(blCm);
-  free(brCm);
-
-  printf("New center of mass, mass: %f, xpos: %f, ypos: %f.\n",newCm->mass,newCm->xPos,newCm->yPos);
-  root->nodeCm = newCm;
-  printf("Confirm new center of mass, mass: %f, xpos: %f, ypos: %f.\n",root->nodeCm->mass,root->nodeCm->xPos,root->nodeCm->yPos);
-
-  return newCm;
+void set_cm(cm_t * cm, double mass, double x, double y){
+  cm->mass = mass;
+  cm->xPos = x;
+  cm->yPos = y;
 }
 
-// void update_cm(cm_t * newCm,){
+void update_cm(cm_t * newCm, cm_t * tlCm, cm_t * trCm, cm_t * blCm, cm_t * brCm, double width){
+  cm_t * cmVec[4]; 
+  cmVec[0]=tlCm; //Top left node center of mass
+  cmVec[1]=trCm;
+  cmVec[2]= blCm;
+  cmVec[3]= brCm; 
+  double totMass = 0;
+  double xAvg, yAvg;
 
-// }
+  for(int i=0; i<4; i++){
+    if(cmVec[i] != NULL){
+      printf("Mass added: %f\n", cmVec[i]->mass);
+      totMass += cmVec[i]->mass;
+    }
+  }
+
+  assert(totMass>0);
+  printf("Total mass is: %f\n", totMass);
+
+  for(int i=0; i<4; i++){
+    if(cmVec[i] != NULL){
+      // Weight with cm's distance to mother nodes center.
+      printf("index %d: x value added: %f\n", i,(cmVec[i]->xPos - width/2)*(cmVec[i]->mass));
+      printf("index %d: y value added: %f\n", i,(cmVec[i]->xPos - width/2)*(cmVec[i]->mass));
+      xAvg += (cmVec[i]->xPos - width/2)*(cmVec[i]->mass); 
+      yAvg += (cmVec[i]->yPos - width/2)*(cmVec[i]->mass); 
+    }
+  }
+  xAvg /= totMass;
+  yAvg /= totMass;
+  xAvg += width/2;
+  yAvg += width/2;
+
+  assert(xAvg>=0);
+  assert(xAvg<=1);
+  assert(yAvg>=0);
+  assert(yAvg<=1);
+
+  newCm->mass = totMass;
+  newCm->xPos = xAvg;
+  newCm->yPos = yAvg; 
+  free(cmVec);
+}
+
+
+cm_t * calc_cm(node_t *root) {
+
+  if(isempty(root)){
+    return NULL;
+  }else if (isleaf(root)){
+    root->nodeCm = (cm_t*)malloc(sizeof(cm_t));
+    set_cm(root->nodeCm, root->particle->mass, root->particle->xPos, root->particle->yPos);
+    return root->nodeCm;
+  }else{
+  
+    //Initiate temp center of mass-struct
+    double data[3]; 
+    cm_t * newCm = (cm_t*)malloc(sizeof(cm_t));
+    
+    //Recursively calculate CoM for each quadrant
+    if(!isempty(root->tl)){ 
+      root->tl->nodeCm = calc_cm(root->tl);
+        // printf("TOP LEFT\n");
+        // printf("CM mass: %f\n", root->tl->nodeCm->mass);
+        // printf("CM xPos: %f\n", root->tl->nodeCm->xPos);
+        // printf("CM yPos: %f\n", root->tl->nodeCm->yPos);
+    }
+    if(!isempty(root->tr)){  
+      root->tr->nodeCm  = calc_cm(root->tr);
+        // printf("TOP RIGHT\n");
+        // printf("CM mass: %f\n", root->tr->nodeCm->mass);
+        // printf("CM xPos: %f\n", root->tr->nodeCm->xPos);
+        // printf("CM yPos: %f\n", root->tr->nodeCm->yPos);
+    }
+    if(!isempty(root->bl)){ 
+      root->bl->nodeCm = calc_cm(root->bl);
+        // printf("BOTTOM LEFT\n");
+        // printf("CM mass: %f\n", root->bl->nodeCm->mass);
+        // printf("CM xPos: %f\n", root->bl->nodeCm->xPos);
+        // printf("CM yPos: %f\n", root->bl->nodeCm->yPos);
+    }
+    if(!isempty(root->br)){ 
+      root->br->nodeCm = calc_cm(root->br);
+        // printf("BOTTOM RIGHT\n");
+        // printf("CM mass: %f\n", root->br->nodeCm->mass);
+        // printf("CM xPos: %f\n", root->br->nodeCm->xPos);
+        // printf("CM yPos: %f\n", root->br->nodeCm->yPos);    
+    }
+
+    //Calculate the node's new center of mass from the childrens center of mass
+    update_cm(newCm, root->tl->nodeCm, root->tr->nodeCm, 
+      root->bl->nodeCm,root->br->nodeCm, root->width);
+
+    printf("New center of mass, mass: %f, xpos: %f, ypos: %f.\n",
+      newCm->mass,newCm->xPos,newCm->yPos);
+    
+    data[0] = newCm->mass;
+    data[1] = newCm->xPos;
+    data[2] = newCm->yPos;
+   
+    free(newCm);
+
+    root->nodeCm = (cm_t*)malloc(sizeof(cm_t));
+    root->nodeCm->mass = data[0];
+    root->nodeCm->xPos = data[1];
+    root->nodeCm->yPos = data[2];
+
+    return root->nodeCm;
+  }
+}
+
+
 
 // Creates new empty node with specified top left corner coordinates and width 
 node_t * new_node(double xPos, double yPos, double width) {
@@ -105,13 +147,13 @@ node_t * new_node(double xPos, double yPos, double width) {
 	if(!(node = malloc(sizeof(*node))))
     	return NULL;
 	node->tl = NULL;
-  	node->tr = NULL;
-  	node->bl = NULL;
-  	node->br = NULL;
-  	node->xPos = xPos;
-  	node->yPos = yPos;
-  	node->width = width;
-  	node->particle = NULL;
+  node->tr = NULL;
+  node->bl = NULL;
+  node->br = NULL;
+  node->xPos = xPos;
+  node->yPos = yPos;
+  node->width = width;
+  node->particle = NULL;
 	return node;
 }
 
@@ -168,9 +210,9 @@ int split_node(node_t *node){
 
   	// Set particle attribute to null
   	node->particle = 0;
-    node->nodeCm->mass  = 0;
-    node->nodeCm->xPos  = 0;
-    node->nodeCm->xPos  = 0;
+    // node->nodeCm->mass  = 0;
+    // node->nodeCm->xPos  = 0;
+    // node->nodeCm->xPos  = 0;
 
 	return insert(node, old);
 }
@@ -179,10 +221,6 @@ int split_node(node_t *node){
 int insert(node_t * root, particle_t * particle) {
 	if(isempty(root)){
 		root->particle = particle;
-    root->nodeCm = (cm_t*)malloc(sizeof(cm_t));
-    root->nodeCm->mass  = particle->mass;
-    root->nodeCm->xPos  = particle->xPos;
-    root->nodeCm->yPos  = particle->yPos;
 		return 1; /* normal insertion flag */
 	} else if(isleaf(root)) {
   		if(root->particle->xPos == particle->xPos && root->particle->yPos == particle->yPos){

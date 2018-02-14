@@ -133,12 +133,12 @@ int main (int argc, char *argv[]) {
   printf("BOTTOM RIGHT\n");
   printf("Is empty: %d\n", isempty(root->br));
   printf("Is leaf: %d\n", isleaf(root->br));
-  printf("Is pointer: %d\n", ispointer(root->br));
+  printf("Is pointer: %d\n\n", ispointer(root->br));
 
   calc_cm(root);
-  
+
   printf("Lets check the mother's center of mass! \n");
-  if(root->tl->nodeCm != NULL){
+  if(root->nodeCm != NULL){
     printf("CM mass: %f\n", root->nodeCm->mass);
     printf("CM xPos: %f\n", root->nodeCm->xPos);
     printf("CM yPos: %f\n", root->nodeCm->yPos);
@@ -147,9 +147,9 @@ int main (int argc, char *argv[]) {
   printf("Lets check the childrens' center of mass! \n");
   printf("TOP LEFT\n");
   if(root->tl->nodeCm != NULL){
-    printf("CM mass: %f\n", root->tl->nodeCm->mass);
-    printf("CM xPos: %f\n", root->tl->nodeCm->xPos);
-    printf("CM yPos: %f\n", root->tl->nodeCm->yPos);
+    printf("CM mass: %f\n", ((root->tl)->nodeCm)->mass);
+    printf("CM xPos: %f\n", ((root->tl)->nodeCm)->xPos);
+    printf("CM yPos: %f\n", ((root->tl)->nodeCm)->yPos);
   }
   printf("TOP RIGHT\n");
   if(root->tr->nodeCm != NULL){
@@ -159,9 +159,9 @@ int main (int argc, char *argv[]) {
   }
   printf("BOTTOM LEFT\n");
   if(root->bl->nodeCm != NULL){
-    printf("CM mass: %f\n", root->bl->nodeCm->mass);
-    printf("CM xPos: %f\n", root->bl->nodeCm->xPos);
-    printf("CM yPos: %f\n", root->bl->nodeCm->yPos);
+    printf("CM mass: %f\n", ((root->bl)->nodeCm)->mass);
+    printf("CM xPos: %f\n", ((root->bl)->nodeCm)->xPos);
+    printf("CM yPos: %f\n", ((root->bl)->nodeCm)->yPos);
   }
   printf("BOTTOM RIGHT\n");
   if(root->br->nodeCm != NULL){

@@ -23,11 +23,11 @@ typedef struct node {
 	// Particle in quad (if leaf. else, it is  NULL)
 	particle_t * particle;
 
-	struct cm * nodeCm;
+	cm_t * nodeCm;
 	//Center of mass of node, mass and coord
-	double cmMass;
-	double cmXPos;
-	double cmYPos;
+	// double cmMass;
+	// double cmXPos;
+	// double cmYPos;
 
 
 } node_t;
@@ -37,6 +37,7 @@ void descent(node_t *node);
 void ascent(node_t *node);
 cm_t * calc_cm(node_t *root);
 void walk(node_t *root, void (*descent)(node_t *node), void (*ascent)(node_t *node));
+void set_cm(cm_t * cm, double mass, double y, double x);
 // Creates new empty node with specified top left corner coordinates and width 
 node_t * new_node(double xPos, double yPos, double width); 
 
