@@ -96,28 +96,28 @@ int main (int argc, char *argv[]) {
 
   // Create mother node
   node_t * root = new_node(0, 0, 1);
-  printf("Mother node created. \n");
-  printf("Is empty: %d\n", isempty(root));
-  printf("Is leaf: %d\n", isleaf(root));
-  printf("Is pointer: %d\n", ispointer(root));
-  //for (int i = 0; i < N; i++) {
-  insert(root, &particles[0]);
-  printf("First particle inserted. \n");
-  printf("Is empty: %d\n", isempty(root));
-  printf("Is leaf: %d\n", isleaf(root));
-  printf("Is pointer: %d\n", ispointer(root));
-  insert(root, &particles[1]);
-  printf("Second particle inserted. \n");
-  printf("Is empty: %d\n", isempty(root));
-  printf("Is leaf: %d\n", isleaf(root));
-  printf("Is pointer: %d\n", ispointer(root));
-  insert(root, &particles[2]);
-  printf("Third particle inserted. \n\n");
+  // printf("Mother node created. \n");
+  // printf("Is empty: %d\n", isempty(root));
+  // printf("Is leaf: %d\n", isleaf(root));
+  // printf("Is pointer: %d\n", ispointer(root));
+  // //for (int i = 0; i < N; i++) {
+  // insert(root, &particles[0]);
+  // printf("First particle inserted. \n");
+  // printf("Is empty: %d\n", isempty(root));
+  // printf("Is leaf: %d\n", isleaf(root));
+  // printf("Is pointer: %d\n", ispointer(root));
+  // insert(root, &particles[1]);
+  // printf("Second particle inserted. \n");
+  // printf("Is empty: %d\n", isempty(root));
+  // printf("Is leaf: %d\n", isleaf(root));
+  // printf("Is pointer: %d\n", ispointer(root));
+  //insert(root, &particles[2]);
+  //printf("Third particle inserted. \n\n");
   // insert(root, &particles[3]);
   // printf("Fourth particle inserted. \n\n");
-  // for(int i=0;i<N;i++){
-  //     insert(root, &particles[1]);
-  // }
+  for(int i=0;i<N;i++){
+      insert(root, &particles[i]);
+  }
 
   printf("Lets check the mother nodes children! \n");
   printf("TOP LEFT\n");
@@ -301,6 +301,7 @@ int main (int argc, char *argv[]) {
 
   // printf("Result saved in file '%s'\n", output_file_name);
 
+  free(root);
   free(buffer);
   return 0;
 }

@@ -30,12 +30,13 @@ void set_cm(cm_t * cm, double mass, double x, double y){
 
 void update_cm(cm_t * newCm, cm_t * tlCm, cm_t * trCm, cm_t * blCm, cm_t * brCm, double width){
   cm_t * cmVec[4]; 
-  cmVec[0]=tlCm; //Top left node center of mass
-  cmVec[1]=trCm;
+  cmVec[0]= tlCm; //Top left node center of mass
+  cmVec[1]= trCm;
   cmVec[2]= blCm;
   cmVec[3]= brCm; 
   double totMass = 0;
-  double xAvg, yAvg;
+  double xAvg = 0; 
+  double yAvg = 0;
 
   for(int i=0; i<4; i++){
     if(cmVec[i] != NULL){
@@ -50,16 +51,14 @@ void update_cm(cm_t * newCm, cm_t * tlCm, cm_t * trCm, cm_t * blCm, cm_t * brCm,
   for(int i=0; i<4; i++){
     if(cmVec[i] != NULL){
       // Weight with cm's distance to mother nodes center.
-      printf("index %d: x value added: %f\n", i,(cmVec[i]->xPos - width/2)*(cmVec[i]->mass));
-      printf("index %d: y value added: %f\n", i,(cmVec[i]->xPos - width/2)*(cmVec[i]->mass));
-      xAvg += (cmVec[i]->xPos - width/2)*(cmVec[i]->mass); 
-      yAvg += (cmVec[i]->yPos - width/2)*(cmVec[i]->mass); 
+      printf("index %d: x value added: %f\n", i,(cmVec[i]->xPos));
+      printf("index %d: y value added: %f\n", i,(cmVec[i]->yPos));
+      xAvg += (cmVec[i]->xPos)*(cmVec[i]->mass); 
+      yAvg += (cmVec[i]->yPos)*(cmVec[i]->mass);
     }
   }
   xAvg /= totMass;
   yAvg /= totMass;
-  xAvg += width/2;
-  yAvg += width/2;
 
   assert(xAvg>=0);
   assert(xAvg<=1);
@@ -154,6 +153,7 @@ node_t * new_node(double xPos, double yPos, double width) {
   node->yPos = yPos;
   node->width = width;
   node->particle = NULL;
+  cm_t * nodeCm = NULL;
 	return node;
 }
 
