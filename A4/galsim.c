@@ -17,8 +17,8 @@ int main (int argc, char *argv[]) {
   const double L=1, W=1;    // Dimensions of domain in which particles move
 
   // Check command line arguments
-  if(argc != 6) {   // End program if not 5 input arguments (argv[0] is the program name)
-        printf("Error: Expected number of input arguments is 5\n");
+  if(argc != 7) {   // End program if not 5 input arguments (argv[0] is the program name)
+        printf("Error: Expected number of input arguments is 6\n");
         exit(1);
   }
   
@@ -32,7 +32,9 @@ int main (int argc, char *argv[]) {
   printf("nsteps: \t\t%d\n", nsteps);
   const double delta_t = atof(argv[4]);        // Timestep
   printf("delta_t: \t\t%.5f\n", delta_t);
-  const int graphics = atoi(argv[5]);         // 1 or 0 meaning graphics on/off
+  const double theta_max = atof(argv[5]);        // Timestep
+  printf("theta_max: \t\t%.1f\n", theta_max);
+  const int graphics = atoi(argv[6]);         // 1 or 0 meaning graphics on/off
   printf("graphics: \t\t%d\n", graphics);
   printf("------------------------------------\n\n");
 
