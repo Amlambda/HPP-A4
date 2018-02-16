@@ -127,10 +127,10 @@ void update_cm(cm_t * newCm, cm_t * tlCm, cm_t * trCm, cm_t * blCm, cm_t * brCm,
   xAvg /= totMass;
   yAvg /= totMass;
 
-  assert(xAvg>=0);
-  assert(xAvg<=1);
-  assert(yAvg>=0);
-  assert(yAvg<=1);
+  // assert(xAvg>=0);
+  // assert(xAvg<=1);
+  // assert(yAvg>=0);
+  // assert(yAvg<=1);
 
   newCm->mass = totMass;
   newCm->xPos = xAvg;

@@ -220,27 +220,27 @@ int main (int argc, char *argv[]) {
     }
     
     // /* Update position of particle i with respect to all other particles */
-    // for (int i = 0; i < N; i++) {
-    //   target = &particles[i];
-    //   target->xVel = get_vel_1D(xAcc[i], target->xVel, delta_t);
-    //   target->yVel = get_vel_1D(yAcc[i], target->yVel, delta_t);
+    for (int i = 0; i < N; i++) {
+      target = &particles[i];
+      target->xVel = get_vel_1D(xAcc[i], target->xVel, delta_t);
+      target->yVel = get_vel_1D(yAcc[i], target->yVel, delta_t);
 
-    //   target->xPos = get_pos_1D(target->xPos, target->xVel, delta_t);   
-    //   target->yPos = get_pos_1D(target->yPos, target->yVel, delta_t);
-    // }
+      target->xPos = get_pos_1D(target->xPos, target->xVel, delta_t);   
+      target->yPos = get_pos_1D(target->yPos, target->yVel, delta_t);
+    }
 
-    // if (graphics == 1) {
-    //   /* Call graphics routines. */
-    //   ClearScreen();
-    //   for (int i = 0; i < N; i++) {
-    //     DrawCircle(particles[i].xPos, particles[i].yPos, L, W, particleRadius, particleColor);
-    //   }
-    //   Refresh();
-    //   // Sleep a short while to avoid screen flickering. (SHOULD ONLY BE USED FOR SMALL N) 
-    //   if(N<500)
-    //     usleep(3000);
-    // }
-    free(root);
+    if (graphics == 1) {
+      /* Call graphics routines. */
+      ClearScreen();
+      for (int i = 0; i < N; i++) {
+        DrawCircle(particles[i].xPos, particles[i].yPos, L, W, particleRadius, particleColor);
+      }
+      Refresh();
+      // Sleep a short while to avoid screen flickering. (SHOULD ONLY BE USED FOR SMALL N) 
+      if(N<500)
+        usleep(3000);
+    }
+    free_tree(root);
   }   
 
   if (graphics == 1) {
