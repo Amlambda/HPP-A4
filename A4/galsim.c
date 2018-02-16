@@ -31,7 +31,7 @@ int main (int argc, char *argv[]) {
   printf("nsteps: \t\t%d\n", nsteps);
   const double delta_t = atof(argv[4]);        // Timestep
   printf("delta_t: \t\t%.5f\n", delta_t);
-  const double theta_max = atof(argv[5]);        // Timestep
+  const double theta_max = atof(argv[5]);        // Theta max
   printf("theta_max: \t\t%.1f\n", theta_max);
   const int graphics = atoi(argv[6]);         // 1 or 0 meaning graphics on/off
   printf("graphics: \t\t%d\n", graphics);
@@ -93,80 +93,6 @@ int main (int argc, char *argv[]) {
     index++;
   }
 
-  // printf("Mother node created. \n");
-  // printf("Is empty: %d\n", isempty(root));
-  // printf("Is leaf: %d\n", isleaf(root));
-  // printf("Is pointer: %d\n", ispointer(root));
-  // //for (int i = 0; i < N; i++) {
-  // insert(root, &particles[0]);
-  // printf("First particle inserted. \n");
-  // printf("Is empty: %d\n", isempty(root));
-  // printf("Is leaf: %d\n", isleaf(root));
-  // printf("Is pointer: %d\n", ispointer(root));
-  // insert(root, &particles[1]);
-  // printf("Second particle inserted. \n");
-  // printf("Is empty: %d\n", isempty(root));
-  // printf("Is leaf: %d\n", isleaf(root));
-  // printf("Is pointer: %d\n", ispointer(root));
-  //insert(root, &particles[2]);
-  //printf("Third particle inserted. \n\n");
-  // insert(root, &particles[3]);
-  // printf("Fourth particle inserted. \n\n");
-
-  // printf("Lets check the mother nodes children! \n");
-  // printf("TOP LEFT\n");
-  // printf("Is empty: %d\n", isempty(root->tl));
-  // printf("Is leaf: %d\n", isleaf(root->tl));
-  // printf("Is pointer: %d\n", ispointer(root->tl));
-  // printf("TOP RIGHT\n");
-  // printf("Is empty: %d\n", isempty(root->tr));
-  // printf("Is leaf: %d\n", isleaf(root->tr));
-  // printf("Is pointer: %d\n", ispointer(root->tr));
-  // printf("BOTTOM LEFT\n");
-  // printf("Is empty: %d\n", isempty(root->bl));
-  // printf("Is leaf: %d\n", isleaf(root->bl));
-  // printf("Is pointer: %d\n", ispointer(root->bl));
-  // printf("BOTTOM RIGHT\n");
-  // printf("Is empty: %d\n", isempty(root->br));
-  // printf("Is leaf: %d\n", isleaf(root->br));
-  // printf("Is pointer: %d\n\n", ispointer(root->br));
-
-
-  // printf("Lets check the mother's center of mass! \n");
-  // if(root->nodeCm != NULL){
-  //   printf("CM mass: %f\n", root->nodeCm->mass);
-  //   printf("CM xPos: %f\n", root->nodeCm->xPos);
-  //   printf("CM yPos: %f\n", root->nodeCm->yPos);
-  // }
-
-  // printf("Lets check the childrens' center of mass! \n");
-  // printf("TOP LEFT\n");
-  // if(root->tl->nodeCm != NULL){
-  //   printf("CM mass: %f\n", ((root->tl)->nodeCm)->mass);
-  //   printf("CM xPos: %f\n", ((root->tl)->nodeCm)->xPos);
-  //   printf("CM yPos: %f\n", ((root->tl)->nodeCm)->yPos);
-  // }
-  // printf("TOP RIGHT\n");
-  // if(root->tr->nodeCm != NULL){
-  //   printf("CM mass: %f\n", root->tr->nodeCm->mass);
-  //   printf("CM xPos: %f\n", root->tr->nodeCm->xPos);
-  //   printf("CM yPos: %f\n", root->tr->nodeCm->yPos);
-  // }
-  // printf("BOTTOM LEFT\n");
-  // if(root->bl->nodeCm != NULL){
-  //   printf("CM mass: %f\n", ((root->bl)->nodeCm)->mass);
-  //   printf("CM xPos: %f\n", ((root->bl)->nodeCm)->xPos);
-  //   printf("CM yPos: %f\n", ((root->bl)->nodeCm)->yPos);
-  // }
-  // printf("BOTTOM RIGHT\n");
-  // if(root->br->nodeCm != NULL){
-  //   printf("CM mass: %f\n", root->br->nodeCm->mass);
-  //   printf("CM xPos: %f\n", root->br->nodeCm->xPos);
-  //   printf("CM yPos: %f\n", root->br->nodeCm->yPos);
-  // }
-  
-
-
   /* If graphics are to be used, prepare graphics window */
   if (graphics == 1) {
     InitializeGraphics(argv[0],windowWidth,windowWidth);
@@ -200,23 +126,8 @@ int main (int argc, char *argv[]) {
       double forceSumX = calc_forcesum(target, root, theta_max, 'x');
       double forceSumY = calc_forcesum(target, root, theta_max, 'y');
 
-      // for (int j = 0; j < N; j++) {
-      //   other = &particles[j];
-      //   if (i != j) {
-      //     absDist = get_abs_dist(target->xPos, target->yPos, other->xPos, other->yPos);
-
-      //     partDistX = get_part_dist_1D(target->xPos, other->xPos);
-      //     partDistY = get_part_dist_1D(target->yPos, other->yPos);
-
-      //     forceSumX += get_force_1D(partDistX, absDist, other->mass);
-      //     forceSumY += get_force_1D(partDistY, absDist, other->mass);
-      //   }
-      // }
-
       xAcc[i] = -(gravConst/N)*forceSumX;
-      //printf("%f\n", xAcc[i]);
       yAcc[i] = -(gravConst/N)*forceSumY;
-      //printf("%f\n", yAcc[i]);
     }
     
     // /* Update position of particle i with respect to all other particles */
@@ -271,9 +182,7 @@ int main (int argc, char *argv[]) {
     index++;
   }
 
-  // Create output file write results to it 
-
-  
+  // Create output file and write results to it 
   int no_of_chars_to_copy = strlen(input_file_name) - 4;   // Copy input file name except for ".gal"
   char* copy_file_name = (char *)malloc(sizeof(char)*no_of_chars_to_copy);      
   strncpy(copy_file_name, input_file_name, no_of_chars_to_copy);
