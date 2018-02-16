@@ -54,25 +54,6 @@ double calc_forcesum(particle_t * target, node_t *node, double theta_max, char c
 }
 
 
-// void descent(node_t *node){
-//   if(node != NULL)
-//     printf("{ tl.x:%f, tl.y:%f, br.x:%f, br.y:%f }: ", node->xPos,
-//       node->yPos, node->xPos + node->width, node->yPos + node->width);
-// }
-
-// void ascent(node_t *node){
-//   printf("\n");
-// }
-
-// void walk(node_t *root, void (*descent)(node_t *node), void (*ascent)(node_t *node)) {
-//   (*descent)(root);
-//   if(root->tl != NULL) walk(root->tl, descent, ascent);
-//   if(root->tr != NULL) walk(root->tr, descent, ascent);
-//   if(root->bl != NULL) walk(root->bl, descent, ascent);
-//   if(root->br != NULL) walk(root->br, descent, ascent);
-//   (*ascent)(root);
-// }
-
 /* Node functions */
 
 void free_tree(node_t * root){
@@ -95,7 +76,7 @@ void set_cm(cm_t * cm, double mass, double x, double y){
   cm->yPos = y;
 }
 
-void update_cm(cm_t * newCm, cm_t * tlCm, cm_t * trCm, cm_t * blCm, cm_t * brCm, double width){
+void update_cm(cm_t * newCm, cm_t * tlCm, cm_t * trCm, cm_t * blCm, cm_t * brCm){
   cm_t * cmVec[4]; 
   cmVec[0]= tlCm; //Top left node center of mass
   cmVec[1]= trCm;
@@ -104,8 +85,7 @@ void update_cm(cm_t * newCm, cm_t * tlCm, cm_t * trCm, cm_t * blCm, cm_t * brCm,
   double totMass = 0;
   double xAvg = 0; 
   double yAvg = 0;
-
-  for(int i=0; i<4; i++){
+    for(int i=0; i<4; i++){
     if(cmVec[i] != NULL){
       //printf("Mass added: %f\n", cmVec[i]->mass);
       totMass += cmVec[i]->mass;
@@ -118,36 +98,72 @@ void update_cm(cm_t * newCm, cm_t * tlCm, cm_t * trCm, cm_t * blCm, cm_t * brCm,
   for(int i=0; i<4; i++){
     if(cmVec[i] != NULL){
       // Weight with cm's distance to mother nodes center.
-      //printf("index %d: x value added: %f\n", i,(cmVec[i]->xPos));
-      //printf("index %d: y value added: %f\n", i,(cmVec[i]->yPos));
+      // printf("index %d: x value added: %f\n", i,(cmVec[i]->xPos));
+      // printf("index %d: y value added: %f\n", i,(cmVec[i]->yPos));
       xAvg += (cmVec[i]->xPos)*(cmVec[i]->mass); 
       yAvg += (cmVec[i]->yPos)*(cmVec[i]->mass);
     }
   }
-  xAvg /= totMass;
-  yAvg /= totMass;
+  xAvg /= (totMass);
+  yAvg /= (totMass);
 
-  // assert(xAvg>=0);
-  // assert(xAvg<=1);
-  // assert(yAvg>=0);
-  // assert(yAvg<=1);
+// printf("Mass total: %f\n", totMass);
+// printf("X avg: %f\n", xAvg);
+// printf("Y avg: %f\n", yAvg);
+  assert(xAvg>=0);
+  assert(xAvg<=1);
+  assert(yAvg>=0);
+  assert(yAvg<=1);
 
   newCm->mass = totMass;
   newCm->xPos = xAvg;
   newCm->yPos = yAvg; 
-  free(cmVec);
+  //free(cmVec);
+
+//   for(int i=0; i<4; i++){
+//     if(cmVec[i] != NULL){
+//       printf("Mass added: %f\n", cmVec[i]->mass);
+//       (*newCm).mass += cmVec[i]->mass;
+//     }
+//   }
+
+//   assert((*newCm).mass>0);
+//   //printf("Total mass is: %f\n", totMass);
+
+//   for(int i=0; i<4; i++){
+//     if(cmVec[i] != NULL){
+//       // Weight with cm's distance to mother nodes center.
+//       printf("index %d: x value added: %f\n", i,(cmVec[i]->xPos));
+//       printf("index %d: y value added: %f\n", i,(cmVec[i]->yPos));
+//       (*newCm).xPos += (cmVec[i]->xPos)*(cmVec[i]->mass); 
+//       (*newCm).yPos += (cmVec[i]->yPos)*(cmVec[i]->mass);
+//     }
+//   }
+//   (*newCm).xPos /= ((*newCm).mass);
+//   (*newCm).yPos /= ((*newCm).mass);
+
+// printf("Mass total: %f\n", (*newCm).mass);
+// printf("X avg: %f\n", (*newCm).xPos);
+// printf("Y avg: %f\n", (*newCm).yPos);
+//   assert((*newCm).xPos>=0);
+//   assert((*newCm).xPos<=1);
+//   assert((*newCm).yPos>=0);
+//   assert((*newCm).yPos<=1);
+
+//   //newCm->mass = totMass;
+//   //newCm->xPos = xAvg;
+//   //newCm->yPos = yAvg; 
+//   //free(cmVec);
 }
 
 // Calculates the center of mass for all pointers and leaf in a tree specified by root pointer
 cm_t * calc_cm(node_t *root) {
 
-  if(isempty(root)){
-    return NULL;
-  }else if (isleaf(root)){
+  if (isleaf(root)){
     root->nodeCm = (cm_t*)malloc(sizeof(cm_t));
     set_cm(root->nodeCm, root->particle->mass, root->particle->xPos, root->particle->yPos);
     return root->nodeCm;
-  }else{
+  }else if(ispointer(root)) {
   
     //Initiate temp center of mass-struct
     //double data[3]; 
@@ -186,7 +202,7 @@ cm_t * calc_cm(node_t *root) {
     root->nodeCm = (cm_t*)malloc(sizeof(cm_t));
     //Calculate the node's new center of mass from the childrens center of mass
     update_cm(root->nodeCm, root->tl->nodeCm, root->tr->nodeCm, 
-      root->bl->nodeCm,root->br->nodeCm, root->width);
+      root->bl->nodeCm,root->br->nodeCm);
 
     // printf("New center of mass, mass: %f, xpos: %f, ypos: %f.\n",
     //   newCm->mass,newCm->xPos,newCm->yPos);
@@ -204,6 +220,7 @@ cm_t * calc_cm(node_t *root) {
 
     return root->nodeCm;
   }
+  return NULL;
 }
 
 
@@ -221,7 +238,7 @@ node_t * new_node(double xPos, double yPos, double width) {
   node->yPos = yPos;
   node->width = width;
   node->particle = NULL;
-  cm_t * nodeCm = NULL;
+  node->nodeCm = NULL;
 	return node;
 }
 
