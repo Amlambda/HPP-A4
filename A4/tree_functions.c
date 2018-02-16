@@ -2,6 +2,8 @@
 #include <math.h>
 #include <assert.h>
 
+const double eps0 = 0.001;
+
 // Checks is a particle and a node has the same position
 int have_same_pos (node_t *node, particle_t * particle){
   return (node->particle->xPos == particle->xPos 
@@ -14,8 +16,9 @@ double get_theta(particle_t * target, node_t * node) {
   double yPosBoxCenter = (node->yPos) + (node->width/2);
 
   // Get distance from target particle to center of box containing other particles
-  double rToGroup = get_abs_dist(target->xPos,target->yPos,xPosBoxCenter, yPosBoxCenter);
-
+  //double rToGroup = get_abs_dist(target->xPos,target->yPos,xPosBoxCenter, yPosBoxCenter);
+  double rToGroup = sqrt(((target->xPos)-xPosBoxCenter)*((target->xPos)-xPosBoxCenter) 
+    + ((target->yPos)-yPosBoxCenter)*((target->yPos)-yPosBoxCenter));
   // Compute theta
   double theta = (node->width)/rToGroup;
   return theta;
@@ -39,16 +42,23 @@ double calc_forcesum(particle_t * target, node_t *node, double theta_max, char c
     // Get center of mass of node and treat it like a particle
     cm_t * other = node->nodeCm;  
 
-    double absDist = get_abs_dist(target->xPos, target->yPos, other->xPos, other->yPos);
+   // double absDist = get_abs_dist(target->xPos, target->yPos, other->xPos, other->yPos);
+    double absDist = sqrt(((target->xPos)-(other->xPos))*((target->xPos)-(other->xPos)) 
+      + ((target->yPos)-(other->yPos))*((target->yPos)-(other->yPos)));
     double partDist, forceSum;
 
     if (coord == 'x') {
-      partDist = get_part_dist_1D(target->xPos, other->xPos);
-      forceSum = get_force_1D(partDist, absDist, other->mass);
+      // partDist = get_part_dist_1D(target->xPos, other->xPos);
+      // forceSum = get_force_1D(partDist, absDist, other->mass);
+      partDist = (target->xPos) - (other->xPos);
+      //forceSum = ((other->mass)*partDist)/((absDist + eps0)*(absDist + eps0)*(absDist + eps0));
     } else {
-      partDist = get_part_dist_1D(target->yPos, other->yPos);
-      forceSum = get_force_1D(partDist, absDist, other->mass);
+      // partDist = get_part_dist_1D(target->yPos, other->yPos);
+      // forceSum = get_force_1D(partDist, absDist, other->mass);
+      partDist = (target->yPos) - (other->yPos);
+      //forceSum = get_force_1D(partDist, absDist, other->mass);
     }
+    forceSum = ((other->mass)*partDist)/((absDist + eps0)*(absDist + eps0)*(absDist + eps0));
 
     return forceSum;
 }
@@ -70,11 +80,11 @@ void free_tree(node_t * root){
   return;
 }
 
-void set_cm(cm_t * cm, double mass, double x, double y){
-  cm->mass = mass;
-  cm->xPos = x;
-  cm->yPos = y;
-}
+// void set_cm(cm_t * cm, double mass, double x, double y){
+//   cm->mass = mass;
+//   cm->xPos = x;
+//   cm->yPos = y;
+// }
 
 void update_cm(cm_t * newCm, cm_t * tlCm, cm_t * trCm, cm_t * blCm, cm_t * brCm){
   cm_t * cmVec[4]; 
@@ -118,21 +128,44 @@ cm_t * calc_cm(node_t *root) {
 
   if (isleaf(root)){
     root->nodeCm = (cm_t*)malloc(sizeof(cm_t));
-    set_cm(root->nodeCm, root->particle->mass, root->particle->xPos, root->particle->yPos);
+    //set_cm(root->nodeCm, root->particle->mass, root->particle->xPos, root->particle->yPos);
+    root->nodeCm->mass = root->particle->mass;
+    root->nodeCm->xPos = root->particle->xPos;
+    root->nodeCm->yPos = root->particle->yPos;
     return root->nodeCm;
   }else if(ispointer(root)) {
     
     //Recursively calculate CoM for each quadrant
-    if(!isempty(root->tl)){ 
+    //if(!isempty(root->tl)){ 
+      if(!(root->tl->tl == NULL
+      && root->tl->tr == NULL
+      && root->tl->bl == NULL
+      && root->tl->br == NULL
+      && root->tl->particle == NULL)){ 
       root->tl->nodeCm = calc_cm(root->tl);
     }
-    if(!isempty(root->tr)){  
+    //if(!isempty(root->tr)){
+    if(!(root->tr->tl == NULL
+      && root->tr->tr == NULL
+      && root->tr->bl == NULL
+      && root->tr->br == NULL
+      && root->tr->particle == NULL)){    
       root->tr->nodeCm  = calc_cm(root->tr);
     }
-    if(!isempty(root->bl)){ 
+    //if(!isempty(root->bl)){ 
+      if(!(root->bl->tl == NULL
+      && root->bl->tr == NULL
+      && root->bl->bl == NULL
+      && root->bl->br == NULL
+      && root->bl->particle == NULL)){  
       root->bl->nodeCm = calc_cm(root->bl);
     }
-    if(!isempty(root->br)){ 
+    //if(!isempty(root->br)){ 
+      if(!(root->br->tl == NULL
+      && root->br->tr == NULL
+      && root->br->bl == NULL
+      && root->br->br == NULL
+      && root->br->particle == NULL)){ 
       root->br->nodeCm = calc_cm(root->br);   
     }
     

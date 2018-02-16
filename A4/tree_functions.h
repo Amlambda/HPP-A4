@@ -7,11 +7,21 @@ typedef struct cm {
 	double yPos;
 } cm_t;
 
+typedef struct particle {
+	double xPos;
+	double yPos;
+	double mass;
+	double xVel;
+	double yVel;
+} particle_t;
+
 typedef struct node {
 	struct node * tl; //top left child
 	struct node * tr; //top right child
 	struct node * bl; //bottom left child
 	struct node * br; //bottom right child
+	particle_t * particle;
+	cm_t * nodeCm;
 
 	// Top left corner of quad
 	double xPos; 
@@ -20,34 +30,22 @@ typedef struct node {
 	// Width of quad
 	double width;
 
-	// Particle in quad (if leaf. else, it is  NULL)
-	particle_t * particle;
-
-	cm_t * nodeCm;
-	//Center of mass of node, mass and coord
-	// double cmMass;
-	// double cmXPos;
-	// double cmYPos;
-
-
 } node_t;
+
 
 int have_same_pos (node_t *node, particle_t * particle);
 
-double get_theta(particle_t * target, node_t * node);
+//double get_theta(particle_t * target, node_t * node);
 
 double calc_forcesum(particle_t * target, node_t * node, double theta_max, char coord);
-
-
-// void descent(node_t *node);
-// void ascent(node_t *node);
-// void walk(node_t *root, void (*descent)(node_t *node), void (*ascent)(node_t *node));
 
 void free_tree(node_t * root);
 
 cm_t * calc_cm(node_t *root);
 
-void set_cm(cm_t * cm, double mass, double y, double x);
+//void set_cm(cm_t * cm, double mass, double y, double x);
+
+
 // Creates new empty node with specified top left corner coordinates and width 
 node_t * new_node(double xPos, double yPos, double width); 
 
